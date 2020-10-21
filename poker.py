@@ -1,6 +1,7 @@
 import random
 from itertools import combinations
 
+#consider switching to enum
 class Card():
     """Class that represents a standard playing card"""
     def __init__(self,value,suit):
@@ -34,6 +35,13 @@ class Card():
     def __str__(self):
         """Makes object convertable to string"""
         return self.name
+
+    def __eq__(self,other):
+        """Allows comparison with =="""
+        equal = self.value == other.value and \
+                self.suit == other.suit
+        return equal
+        
 
     def getDeck():
         """Creates a 52 card deck (list) of Card objects"""
@@ -333,9 +341,9 @@ def getWinningHands(rankList,compareIndex = 0,toCompare = []):
 
 def getBest(holeCards,communityCards):
     """Take list of 2 hole cards and list of 5 community cards best,
-    return the rankList of the best hand"""
+    return the rankList of the best hand, also works with >=3 community cards"""
     best = [0,0,0,0,0,0]
-    #21 iterations
+    #21 iterations for full 7 cards
     for hand in combinations(holeCards+communityCards,5):
         #gets the higher ranking of the two hands
         compare2 = [best]
@@ -357,6 +365,71 @@ def checkGameWon(playerList):
         if playersIn > 1:
             return False, None
     return True, win
+
+def estimateHandStrength(holeCards,communityCards,opponents=1,iterations=500):
+    """Performs random iterations of possible outcomes to
+    get an estimate of potential hand strength"""
+
+    #removes known cards from estimation
+    simulatedDeck = Card.getDeck()
+    cardsToRemove = []
+    for card in holeCards+communityCards:
+        for i in range(len(simulatedDeck)):
+            if card == simulatedDeck[i]:
+                cardsToRemove.append(simulatedDeck[i])
+                break
+
+    for card in cardsToRemove:
+        simulatedDeck.remove(card)
+
+    #performs iterations of possibilities
+    flopWins = 0
+    turnWins = 0
+    riverWins = 0
+    for i in range(iterations):
+        dck = simulatedDeck.copy()
+        cmCards = communityCards.copy()
+        
+        #simulate opponent cards
+        oppHoles = []
+        for i in range(opponents):
+            oppHoles.append(drawX(2,dck))
+
+        #TODO add something for pre-flop strength
+
+        #estimate strength on flop
+        if len(cmCards) == 0:
+            cmCards+=drawX(3,dck)
+            if compareSimHands(holeCards,cmCards,oppHoles):
+                flopWins += 1
+            
+        #estimate strength on turn
+        if len(cmCards) == 3:
+            cmCards+=drawX(1,dck)
+            if compareSimHands(holeCards,cmCards,oppHoles):
+                turnWins += 1
+                
+        #estimate strength on river
+        if len(cmCards) == 4:
+            cmCards+=drawX(1,dck)
+            if compareSimHands(holeCards,cmCards,oppHoles):
+                riverWins += 1
+
+        #estimate strength on showdown
+        elif len(cmCards) == 5:
+            if compareSimHands(holeCards,cmCards,oppHoles):
+                riverWins += 1
+                
+    return [flopWins,turnWins,riverWins]
+
+def compareSimHands(holeCards,cmCards,oppHoles):
+    """Helper for estimateHandStrength, returns true if a
+    player wins with inputted hole cards and community cards"""
+    playerValue = getBest(holeCards,cmCards)
+    oppValues = []
+    for hole in oppHoles:
+        oppValues.append(getBest(hole,cmCards))
+    return getWinningHands([playerValue]+oppValues)[0] == 0
         
 
 def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
@@ -540,6 +613,23 @@ for hand in hands:
 
 print(getWinningHands(rankings))
 """
+
+#estimate hand testing
+"""
+deck = Card.getDeck()
+    hole = drawX(2,deck)
+    flop = drawX(3,deck)
+    turn = flop+drawX(1,deck)
+    river = turn+drawX(1,deck)
+    Card.displayCards(hole)
+    print(estimateHandStrength(hole,[]))
+    Card.displayCards(flop)
+    print(estimateHandStrength(hole,flop))
+    Card.displayCards(turn)
+    print(estimateHandStrength(hole,turn))
+    Card.displayCards(river)
+    print(estimateHandStrength(hole,river))
+"""
     
 if __name__ == "__main__":
     #TODO finish game loop and get function to detect all but one busted
@@ -548,10 +638,4 @@ if __name__ == "__main__":
     bigBlind = 50
     buttonPos = 0
     buttonPos = gameRound(deck,playerList,bigBlind,buttonPos)
-    
-    
-    
-    
-    
-
     
