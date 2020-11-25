@@ -432,7 +432,7 @@ def compareSimHands(holeCards,cmCards,oppHoles):
     return getWinningHands([playerValue]+oppValues)[0] == 0
         
 
-def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
+def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
     """Handles a betting round of a single poker game"""
     playersReady = 0
     while playersReady < len(playerList):
@@ -444,9 +444,15 @@ def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
             continue
 
         raised = False
-        
+
+        #if player needs to call
         if player.bet < highestBet:
-            choice, amount = player.AI(["Call","Raise","Fold"],player)
+
+            #if raise limit reached, remove raise as possible action
+            if limit > 0:
+                choice, amount = player.AI(["Call","Raise","Fold"],player)
+            elif limit == 0:
+                choice, amount = player.AI(["Call","Fold"],player)
             
             if choice == "Call":
                 pot = player.call(pot,highestBet)
@@ -457,6 +463,7 @@ def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
             elif choice == "Raise":
                 pot,highestBet = player._raise(pot,highestBet,amount)
                 raised = True
+                limit -= 1
                 if printing:
                     print("Player",activePlayer,"raises to",highestBet)
                 
@@ -466,9 +473,13 @@ def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
                 if printing:
                     print("Player",activePlayer,"folds")
                 
-             
+        #if player doesn't need to call     
         elif player.bet == highestBet:
-            choice, amount = player.AI(["Check","Raise"],player)
+            #if raise limit reached, remove raise as possible action
+            if limit > 0:
+                choice, amount = player.AI(["Check","Raise"],player)
+            elif limit == 0:
+                choice, amount = player.AI(["Check"],player)
 
             if choice == "Check":
                 raised = False
@@ -478,6 +489,7 @@ def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
             elif choice == "Raise":
                 pot,highestBet = player._raise(pot,highestBet,amount)
                 raised = True
+                limit -= 1
                 if printing:
                     print("Player",activePlayer,"raises to",highestBet)
 
@@ -493,19 +505,28 @@ def bettingRound(playerList,highestBet,activePlayer,pot,printing = True):
 
 def gameRound(*args):
     #TODO switch away from *args
-    #TODO get correct order of play for headsup poker, big currently goes first
     """Performs one full round of poker"""
     deck = args[0]
     playerList = args[1]
     bigBlind = args[2]
     buttonPos = args[3]
+    limit = args[4]
     pot = 0
-    #TODO account for busted players for blinds + here
-    activePlayer = (buttonPos + 3) % len(playerList)
+    #TODO account for busted players for blinds
+    if len(playerList) > 2:
+        activePlayer = (buttonPos + 3) % len(playerList)
+    elif len(playerList) == 2:
+        #heads up, dealer is also small blind
+        activePlayer = buttonPos
 
     #sets blinds by raising half big blind twice
-    pot, highestBet = playerList[(buttonPos+1) % len(playerList)]._raise(pot,0,int(bigBlind/2))
-    pot, highestBet = playerList[(buttonPos+2) % len(playerList)]._raise(pot,highestBet,int(bigBlind/2))
+    if len(playerList) > 2:
+        pot, highestBet = playerList[(buttonPos+1) % len(playerList)]._raise(pot,0,int(bigBlind/2))
+        pot, highestBet = playerList[(buttonPos+2) % len(playerList)]._raise(pot,highestBet,int(bigBlind/2))
+    elif len(playerList) == 2:
+        pot, highestBet = playerList[buttonPos]._raise(pot,0,int(bigBlind/2))
+        pot, highestBet = playerList[(buttonPos+1) % len(playerList)]._raise(pot,highestBet,int(bigBlind/2))
+    
 
     communityCards = []
 
@@ -513,7 +534,7 @@ def gameRound(*args):
     deal(deck,playerList)
 
     #preflop
-    activePlayer, highestBet, pot = bettingRound(playerList,highestBet,0,pot)
+    activePlayer, highestBet, pot = bettingRound(playerList,highestBet,0,pot,limit)
     gameWon, winner = checkGameWon(playerList)
     
     if not gameWon:
@@ -521,7 +542,7 @@ def gameRound(*args):
         communityCards += drawX(3,deck)
         Card.displayCards(communityCards)
 
-        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot)
+        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
         gameWon, winner = checkGameWon(playerList)
 
     #TODO compress turn and river into one loop
@@ -530,7 +551,7 @@ def gameRound(*args):
         communityCards += drawX(1,deck)
         Card.displayCards(communityCards)
         
-        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot)
+        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
         gameWon, winner = checkGameWon(playerList)
 
     if not gameWon:
@@ -539,7 +560,7 @@ def gameRound(*args):
 
         Card.displayCards(communityCards)
 
-        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot)
+        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
         gameWon, winner = checkGameWon(playerList)
 
     if not gameWon:
@@ -617,10 +638,10 @@ print(getWinningHands(rankings))
 #estimate hand testing
 """
 deck = Card.getDeck()
-    hole = drawX(2,deck)
-    flop = drawX(3,deck)
-    turn = flop+drawX(1,deck)
-    river = turn+drawX(1,deck)
+    hole = [Card(9,"s"),Card(8,"s")]
+    flop = [Card(2,"s"),Card(5,"s"),Card(8,"h")]
+    turn = flop+[Card(11,"c")]
+    river = turn+[Card(10,"c")]
     Card.displayCards(hole)
     print(estimateHandStrength(hole,[]))
     Card.displayCards(flop)
@@ -633,9 +654,12 @@ deck = Card.getDeck()
     
 if __name__ == "__main__":
     #TODO finish game loop and get function to detect all but one busted
+    
     deck = Card.getDeck()
-    playerList = Player.getPlayerList(3,300)
+    playerList = Player.getPlayerList(2,300)
     bigBlind = 50
     buttonPos = 0
-    buttonPos = gameRound(deck,playerList,bigBlind,buttonPos)
+    buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)
+    
+    
     
