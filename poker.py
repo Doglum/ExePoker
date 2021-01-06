@@ -89,7 +89,7 @@ def CFRTrainingIntelligence(choices,player):
     hole = player.holeCards
     comm = player.communityCards
     iSets = cfr.stored.sets
-    pass
+    
     #TODO finish
 
 class Player():
@@ -103,7 +103,7 @@ class Player():
         self.allin = False
         self.busted = False #could remove from playerList instead
 
-        #non-functional info
+        #info for CFR
         self.communityCards = []
         self.history = []
 
@@ -571,27 +571,18 @@ def gameRound(*args):
         activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
         gameWon, winner = checkGameWon(playerList)
 
-    #TODO compress turn and river into one loop
-    if not gameWon:
-        #turn
-        communityCards += drawX(1,deck)
-        for p in playerList:
-            p.communityCards = deepcopy(communityCards)
-        Card.displayCards(communityCards)
-        
-        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
-        gameWon, winner = checkGameWon(playerList)
+    #does turn and river
+    for i in range(2):
+        if not gameWon:
+            communityCards += drawX(1,deck)
+            for p in playerList:
+                p.communityCards = deepcopy(communityCards)
+            Card.displayCards(communityCards)
+            
+            activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
+            gameWon, winner = checkGameWon(playerList)
 
-    if not gameWon:
-        #river
-        communityCards += drawX(1,deck)
-        for p in playerList:
-            p.communityCards = deepcopy(communityCards)
 
-        Card.displayCards(communityCards)
-
-        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
-        gameWon, winner = checkGameWon(playerList)
 
     if not gameWon:
         #post river, compare hands
