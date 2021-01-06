@@ -1,5 +1,7 @@
 import random
 from itertools import combinations
+from copy import deepcopy
+import cfr
 
 #consider switching to enum
 class Card():
@@ -83,8 +85,16 @@ def humanIntelligence(choices,player):
     else:
         return playerChoice, amount
 
+def CFRTrainingIntelligence(choices,player):
+    hole = player.holeCards
+    comm = player.communityCards
+    iSets = cfr.stored.sets
+    pass
+    #TODO finish
+
 class Player():
-    """Class representing a poker player"""
+    """Class representing a poker player, also contains info available
+    to them"""
     def __init__(self,chips):
         self.holeCards = []
         self.chips = chips
@@ -92,6 +102,10 @@ class Player():
         self.folded = False
         self.allin = False
         self.busted = False #could remove from playerList instead
+
+        #non-functional info
+        self.communityCards = []
+        self.history = []
 
         #function that handles decisions TODO think about
         self.AI = humanIntelligence
@@ -437,13 +451,13 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
     playersReady = 0
     while playersReady < len(playerList):
         player = playerList[activePlayer]
-        
         if player.folded or player.busted or player.allin:
             activePlayer = (activePlayer + 1) % len(playerList)
             playersReady += 1
             continue
 
         raised = False
+        folded = False
 
         #if player needs to call
         if player.bet < highestBet:
@@ -470,6 +484,7 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
             elif choice == "Fold":
                 player.fold()
                 raised = False
+                folded = True
                 if printing:
                     print("Player",activePlayer,"folds")
                 
@@ -495,9 +510,18 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
 
         if raised:
             playersReady = 1
+
+        #needed for 1st round where a player can start with enough chips
+        elif folded:
+            if checkGameWon(playerList)[0]:
+                break
             
         else:
             playersReady += 1
+
+        #adds betting history info (as letter) to players
+        for p in playerList:
+            p.history.append(choice)
         
         activePlayer = (activePlayer + 1) % len(playerList)
 
@@ -540,6 +564,8 @@ def gameRound(*args):
     if not gameWon:
         #flop
         communityCards += drawX(3,deck)
+        for p in playerList:
+            p.communityCards = deepcopy(communityCards)
         Card.displayCards(communityCards)
 
         activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
@@ -549,6 +575,8 @@ def gameRound(*args):
     if not gameWon:
         #turn
         communityCards += drawX(1,deck)
+        for p in playerList:
+            p.communityCards = deepcopy(communityCards)
         Card.displayCards(communityCards)
         
         activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
@@ -557,6 +585,8 @@ def gameRound(*args):
     if not gameWon:
         #river
         communityCards += drawX(1,deck)
+        for p in playerList:
+            p.communityCards = deepcopy(communityCards)
 
         Card.displayCards(communityCards)
 
@@ -585,6 +615,7 @@ def gameRound(*args):
     #if someone won because everyone else folded
     if gameWon:
         winner.chips += pot
+        print("Player",playerList.index(winner),"Wins!")
 
     #TODO account for busted players
     butttonPos = (buttonPos + 1) % len(playerList)
