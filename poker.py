@@ -85,6 +85,17 @@ def humanIntelligence(choices,player):
     else:
         return playerChoice, amount
 
+def randomBot(choices,player):
+    """AI that randomly selects an action"""
+    amount = 0
+    choice = random.choices(choices)[0]
+    if choice == "Raise":
+        amount = 20
+        return choice, amount
+    else:
+        return choice, amount
+    
+
 def CFRTrainingIntelligence(choices,player):
     hole = player.holeCards
     comm = player.communityCards
@@ -643,23 +654,25 @@ print(getWinningHands(hands))
 
 #hand comparison testing
 """
-deck = Card.getDeck()
-hands = []
-rankings = []
-for i in range(5):
-    hands.append(draw5(deck))
-for hand in hands:
-    Card.displayCards(hand)
-    print(handRecognition(hand))
-    rankings.append(handRecognition(hand)[0])
-    print()
+if __name__ == "__main__":
+    deck = Card.getDeck()
+    hands = []
+    rankings = []
+    for i in range(5):
+        hands.append(draw5(deck))
+    for hand in hands:
+        Card.displayCards(hand)
+        print(handRecognition(hand))
+        rankings.append(handRecognition(hand)[0])
+        print()
 
-print(getWinningHands(rankings))
+    print(getWinningHands(rankings))
 """
 
 #estimate hand testing
 """
-deck = Card.getDeck()
+if __name__ == "__main__":
+    deck = Card.getDeck()
     hole = [Card(9,"s"),Card(8,"s")]
     flop = [Card(2,"s"),Card(5,"s"),Card(8,"h")]
     turn = flop+[Card(11,"c")]
@@ -673,15 +686,15 @@ deck = Card.getDeck()
     Card.displayCards(river)
     print(estimateHandStrength(hole,river))
 """
-    
+#"""
 if __name__ == "__main__":
     #TODO finish game loop and get function to detect all but one busted
-    
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
+    playerList[1].AI = randomBot
     bigBlind = 50
     buttonPos = 0
     buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)
-    
+#"""
     
     
