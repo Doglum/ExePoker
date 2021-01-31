@@ -691,7 +691,7 @@ if __name__ == "__main__":
     #TODO finish game loop and get function to detect all but one busted
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
-    playerList[1].AI = randomBot
+    #playerList[1].AI = randomBot
     bigBlind = 50
     buttonPos = 0
     buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)

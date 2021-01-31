@@ -44,10 +44,6 @@ class Game():
             self.sets[(card,history)] = InfoSet()
         return self.sets[(card,history)]            
 
-
-
-
-
 def payoff(history, cards):
     #opponent folded, win 1
     if history in ["BP","PBP"]:
@@ -125,28 +121,3 @@ if __name__ == "__main__":
     for i in game.sets:
         s = game.sets[i]
         print(i,"\t",s.cumRegrets)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-                
-            
-        
