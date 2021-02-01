@@ -134,9 +134,9 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
             rankList = [poker.getBest(p.holeCards,commCards) for p in players]
             winners = poker.getWinningHands(rankList)
 
-            #if tie, split payoff in half
+            #if tie, no payoff (both have bets returned)
             if len(winners) == 2:
-                return payoff(players)/2
+                return 0
 
             #if current player won, get full payoff
             elif winners[0] == currentPlayer:
@@ -214,38 +214,32 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
         iSet.cumRegrets[i] += reachProbs[opponent]*(newRegrets[i] - nodeValue)
 
     return nodeValue
-        
-        
 
+def doTraining(sets,itr, limit=4):
+    """Does training on infoset dictionary sets for itr iterations
+    bet limit is 4 by default, for quick demo use limit=1"""
+    for i in range(itr):
+        #creates fresh player list and deck
+        playerList = poker.Player.getPlayerList(2,300)
+        deck = poker.Card.getDeck()
+        history = []
+        #gives both players their cards
+        for p in playerList:
+            p.holeCards=poker.drawX(2,deck)
+        #sets first player as small blind, second as big
+        playerList[0].bet = 10
+        playerList[1].bet = 20
+        #performs 1 iteration of training
+        value = trainCFR(deck,history,playerList,[1,1],0,sets,limit)
+    return value
     
-    
-
-    
-
-    
-                
-                
-
-    
-
-
 
 if __name__ == "__main__":
-    playerList = poker.Player.getPlayerList(2,300)
-    deck = poker.Card.getDeck()
     info = Sets()
-    #test stuff
-    #communityCards = poker.drawX(5,deck)
-    #poker.Card.displayCards(communityCards)
-    #history = ['Call', 'Raise', 'Call', 'Raise', 'Call', 'Check', 'Check', 'Check', 'Check']
-    history = []
-    for p in playerList:
-        p.holeCards = poker.drawX(2,deck)
-        poker.Card.displayCards(p.holeCards)
-    playerList[0].bet = 10
-    playerList[1].bet = 20
-
-    print(trainCFR(deck,history,playerList,[1,1],0,info,1))
+    doTraining(info,10,4)
+    for i in info.sets:
+        s = info.sets[i]
+        print(i,s.cumRegrets)
 
             
             
