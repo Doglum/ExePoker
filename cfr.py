@@ -261,16 +261,14 @@ def trainFor(sets,mins,startItr,limit=4,saveDir="Saves",saveInterval=100):
 def getMostRecentSave(saveDir="Saves"):
     """Gets the most recent Sets object save from directory saveDir"""
     saves = os.listdir(saveDir)
-    saves.sort()
+    saves.sort(key = lambda x:int(x[4:len(x)-2]))
     itrs = saves[-1].replace("sets","")
     itrs = itrs.replace(".p","")
     return loadSets(saveDir+"/"+saves[-1]),int(itrs)
             
-        
-    
-
 if __name__ == "__main__":
     info,itrs = getMostRecentSave()
+    print("Current itr:",itrs)
     mins = float(input("Train for how many mins?\n"))
     trainFor(info,mins,itrs)
     
