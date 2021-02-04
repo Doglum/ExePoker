@@ -1,4 +1,4 @@
-import random
+import random, pickle
 from itertools import combinations
 from copy import deepcopy
 import cfr
@@ -95,14 +95,31 @@ def randomBot(choices,player):
     else:
         return choice, amount
     
-
-def CFRTrainingIntelligence(choices,player):
+def CFRIntelligence(choices,player):
+    """AI that works based on trained data from CFR"""
+    #gets attributes from player
     hole = player.holeCards
     comm = player.communityCards
-    iSets = cfr.stored.sets
-    
-    #TODO finish
+    history = player.history
+    info = player.info
 
+    #gets abstract value of cards
+    cardValue = cfr.getCardAbstraction(hole,comm)
+
+    #gets infoset and its average (Nash equilibrium) strategy
+    iSet = info.getInfoSet((cfr.getHistoryString(history),cardValue),choices)
+    strat = iSet.averageStrat()
+
+    #gets choice based on strat (prob. dis.)
+    choice = random.choices(choices,strat)[0]
+
+    amount = 0
+    if choice == "Raise":
+        amount = 20
+        return choice, amount
+    else:
+        return choice, amount
+    
 class Player():
     """Class representing a poker player, also contains info available
     to them"""
@@ -117,6 +134,7 @@ class Player():
         #info for CFR
         self.communityCards = []
         self.history = []
+        self.info = None
 
         #function that handles decisions TODO think about
         self.AI = humanIntelligence
@@ -688,10 +706,13 @@ if __name__ == "__main__":
 """
 #"""
 if __name__ == "__main__":
+    #circular dependedency workaround, TODO think about
+    from cfr import Sets,InfoSet
     #TODO finish game loop and get function to detect all but one busted
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
-    #playerList[1].AI = randomBot
+    playerList[1].info,itr = cfr.getMostRecentSave()
+    playerList[1].AI = CFRIntelligence
     bigBlind = 50
     buttonPos = 0
     buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)
