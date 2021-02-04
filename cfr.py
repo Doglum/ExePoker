@@ -1,4 +1,4 @@
-import random
+import random,pickle,time,os
 import poker
 from copy import deepcopy
 class InfoSet():
@@ -28,7 +28,7 @@ class InfoSet():
         strat = self.cumRegrets.copy()
         strat = self.normaliseStrat(strat)
 
-        """Updates strategy sum as strategy has been used"""
+        #Updates strategy sum as strategy has been used
         for i in range(len(self.stratSum)):
             self.stratSum[i] += reachProb * strat[i]
 
@@ -232,14 +232,48 @@ def doTraining(sets,itr, limit=4):
         #performs 1 iteration of training
         value = trainCFR(deck,history,playerList,[1,1],0,sets,limit)
     return value
+
+def loadSets(filename):
+    """Returns loaded Sets object from file"""
+    return pickle.load(open(filename,"rb"))
+def saveSets(sets,filename):
+    """Saves Sets object to file"""
+    pickle.dump(sets,open(filename,"wb"))
+
+def trainFor(sets,mins,startItr,limit=4,saveDir="Saves",saveInterval=100):
+    """Performs training on sets object for mins minutes,
+    will save every saveInterval iterations and at end"""
+    info = sets
+    start = time.time()
+    itrs = startItr
+    #while still time
+    while (time.time() - start)/60 <= mins:
+        itrs += 1
+        doTraining(info,1,limit)
+        if itrs % saveInterval == 0:
+            saveSets(info,saveDir+"/sets"+str(itrs)+".p")
+    end = time.time()
+            
+    saveSets(info,saveDir+"/sets"+str(itrs)+".p")
+    print("Did",itrs-startItr,"iterations, total iterations:",itrs)
+    print((end-start)/(itrs-startItr),"seconds per iteration on average")
+
+def getMostRecentSave(saveDir="Saves"):
+    """Gets the most recent Sets object save from directory saveDir"""
+    saves = os.listdir(saveDir)
+    saves.sort()
+    itrs = saves[-1].replace("sets","")
+    itrs = itrs.replace(".p","")
+    return loadSets(saveDir+"/"+saves[-1]),int(itrs)
+            
+        
     
 
 if __name__ == "__main__":
-    info = Sets()
-    doTraining(info,10,4)
-    for i in info.sets:
-        s = info.sets[i]
-        print(i,s.cumRegrets)
+    info,itrs = getMostRecentSave()
+    mins = float(input("Train for how many mins?\n"))
+    trainFor(info,mins,itrs)
+    
 
             
             
