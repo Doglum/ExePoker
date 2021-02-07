@@ -110,11 +110,11 @@ def CFRIntelligence(choices,player):
     iSet = info.getInfoSet((cfr.getHistoryString(history),cardValue),choices)
     strat = iSet.averageStrat()
     Card.displayCards(hole)
-    """
+    #"""
     print(choices)
     print(strat)
     print(cardValue)
-    """
+    #"""
 
     #gets choice based on strat (prob. dis.)
     choice = random.choices(choices,strat)[0]
@@ -499,7 +499,7 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
 
             #if raise limit reached, remove raise as possible action
             if limit > 0:
-                choice, amount = player.AI(["Call","Raise","Fold"],player)
+                choice, amount = player.AI(["Call","Fold","Raise"],player)
             elif limit == 0:
                 choice, amount = player.AI(["Call","Fold"],player)
             
