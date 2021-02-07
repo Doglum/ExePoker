@@ -109,6 +109,12 @@ def CFRIntelligence(choices,player):
     #gets infoset and its average (Nash equilibrium) strategy
     iSet = info.getInfoSet((cfr.getHistoryString(history),cardValue),choices)
     strat = iSet.averageStrat()
+    Card.displayCards(hole)
+    """
+    print(choices)
+    print(strat)
+    print(cardValue)
+    """
 
     #gets choice based on strat (prob. dis.)
     choice = random.choices(choices,strat)[0]
@@ -595,6 +601,7 @@ def gameRound(*args):
         communityCards += drawX(3,deck)
         for p in playerList:
             p.communityCards = deepcopy(communityCards)
+            p.history += ["Round"]
         Card.displayCards(communityCards)
 
         activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
@@ -606,6 +613,7 @@ def gameRound(*args):
             communityCards += drawX(1,deck)
             for p in playerList:
                 p.communityCards = deepcopy(communityCards)
+                p.history += ["Round"]
             Card.displayCards(communityCards)
             
             activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
@@ -712,8 +720,9 @@ if __name__ == "__main__":
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
     playerList[1].info,itr = cfr.getMostRecentSave()
+    print("Loaded AI with",itr,"iterations")
     playerList[1].AI = CFRIntelligence
-    bigBlind = 50
+    bigBlind = 20
     buttonPos = 0
     buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)
 #"""

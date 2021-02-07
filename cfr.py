@@ -60,6 +60,8 @@ def getHistoryString(history):
             msg+="R"
         elif i == "Call":
             msg+="C"
+        elif i == "Round":
+            msg+="_"
     return msg
 
 def getCardAbstraction(holeCards,communityCards=[]):
@@ -101,6 +103,7 @@ def isTerminal(history,players):
         return True
     if roundOver(history) and len(players[0].communityCards) == 5:
         return True
+    
     return False
 
 def roundOver(history):
@@ -118,15 +121,18 @@ def payoff(players):
     #consider doing just opponent bet TODO
     return sum([p.bet for p in players])
 
+#TODO CRITICAL, river may not be getting reached, check terminal game criteria
+#put is terminal after action taken maybe (non-folding)
 def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
     """Performs CFR, recursive, on one betting round. Returns payoff and
     updates information sets with regrets as they are processed"""
+    his = deepcopy(history)
     #if game over, return payoff and halt recursion
-    if isTerminal(history,players):
+    if isTerminal(his,players):
         #if last player folded, current p gets pot
-        if history[-1] == "Fold":
+        if his[-1] == "Fold":
             return payoff(players)
-
+        
         #if final round, winner of showdown gets pot
         else:
             commCards = players[0].communityCards
@@ -149,7 +155,8 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
     #----- non-terminal, game continuing -----
 
     #checks if previous betting round is over, draws new cards if so
-    if roundOver(history):
+    if roundOver(his):
+        his+=["Round"]
         #flop
         if len(players[0].communityCards) < 3:
             newCards = poker.drawX(3,deck)
@@ -162,15 +169,15 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
             p.communityCards += newCards
 
     #if bet limit reached, ban raising
-    if history[len(history) - limit : len(history)] == ["Raise"]*limit:
+    if his[len(his) - limit : len(his)] == ["Raise"]*limit:
         actions = ["Call","Fold"]
     #prevents index error
-    elif len(history) == 0:
+    elif len(his) == 0:
         actions = ["Call","Fold","Raise"]
     #necessary response actions, fold removed when check is possible
-    elif history[-1] == "Raise":
+    elif his[-1] == "Raise":
         actions = ["Call","Fold","Raise"]
-    elif history[-1] == "Check" or history[-1] == "Call":
+    elif his[-1] == "Check" or his[-1] == "Call" or his[-1]=="Round":
         actions = ["Check","Raise"]
         
     #converts cards for this player to number value
@@ -178,7 +185,7 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
     #calculates position of opponent (next player)
     opponent = (currentPlayer + 1) % 2
     #creates/gets infoset object for this game state and retrieves strategy
-    iSet = sets.getInfoSet((getHistoryString(history),cardValue),actions)
+    iSet = sets.getInfoSet((getHistoryString(his),cardValue),actions)
     strat = iSet.getStrat(reachProbs[currentPlayer])    
 
     #stores regrets for each possible action evaluated
@@ -202,7 +209,7 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit):
         d = deepcopy(deck)
 
         #recursive call, passes updated values after processing of this action
-        newRegrets[i] = -trainCFR(d,history+[action],pl,newReachProbs,opponent,sets,limit)
+        newRegrets[i] = -trainCFR(d,his+[action],pl,newReachProbs,opponent,sets,limit)
 
     #value is regrets weighted by action probability
     nodeValue = 0
@@ -271,6 +278,7 @@ if __name__ == "__main__":
     print("Current itr:",itrs)
     mins = float(input("Train for how many mins?\n"))
     trainFor(info,mins,itrs)
+    
     
 
             
