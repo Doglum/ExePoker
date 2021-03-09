@@ -571,6 +571,7 @@ def gameRound(*args):
     bigBlind = args[2]
     buttonPos = args[3]
     limit = args[4]
+    printing = args[5]
     pot = 0
     #TODO account for busted players for blinds
     if len(playerList) > 2:
@@ -589,12 +590,12 @@ def gameRound(*args):
     
 
     communityCards = []
-
-    print("Dealing...")
+    if printing:
+        print("Dealing...")
     deal(deck,playerList)
 
     #preflop
-    activePlayer, highestBet, pot = bettingRound(playerList,highestBet,0,pot,limit)
+    activePlayer, highestBet, pot = bettingRound(playerList,highestBet,0,pot,limit,printing)
     gameWon, winner = checkGameWon(playerList)
     
     if not gameWon:
@@ -603,9 +604,9 @@ def gameRound(*args):
         for p in playerList:
             p.communityCards = deepcopy(communityCards)
             p.history += ["Round"]
-        Card.displayCards(communityCards)
+        if printing: Card.displayCards(communityCards)
 
-        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
+        activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit,printing)
         gameWon, winner = checkGameWon(playerList)
 
     #does turn and river
@@ -615,9 +616,9 @@ def gameRound(*args):
             for p in playerList:
                 p.communityCards = deepcopy(communityCards)
                 p.history += ["Round"]
-            Card.displayCards(communityCards)
+            if printing: Card.displayCards(communityCards)
             
-            activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit)
+            activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit,printing)
             gameWon, winner = checkGameWon(playerList)
 
 
@@ -638,13 +639,13 @@ def gameRound(*args):
         winnings = pot/len(winnerIndices)
         
         for i in winnerIndices:
-            print("Player",i,"Wins!")
+            if printing: print("Player",i,"Wins!")
             inContention[i].chips += winnings
 
     #if someone won because everyone else folded
     if gameWon:
         winner.chips += pot
-        print("Player",playerList.index(winner),"Wins!")
+        if printing: print("Player",playerList.index(winner),"Wins!")
 
     #TODO account for busted players
     buttonPos = (buttonPos + 1) % len(playerList)
@@ -726,7 +727,7 @@ if __name__ == "__main__":
     #playerList[0].AI = randomBot
     bigBlind = 20
     buttonPos = 0
-    buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)
+    buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4,True)
 #"""
     
     
