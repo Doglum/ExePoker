@@ -109,12 +109,13 @@ def CFRIntelligence(choices,player):
     #gets infoset and its average (Nash equilibrium) strategy
     iSet = info.getInfoSet((cfr.getHistoryString(history),cardValue),choices)
     strat = iSet.averageStrat()
+    
+    """
     Card.displayCards(hole)
-    #"""
     print(choices)
     print(strat)
     print(cardValue)
-    #"""
+    """
 
     #gets choice based on strat (prob. dis.)
     choice = random.choices(choices,strat)[0]
@@ -646,7 +647,7 @@ def gameRound(*args):
         print("Player",playerList.index(winner),"Wins!")
 
     #TODO account for busted players
-    butttonPos = (buttonPos + 1) % len(playerList)
+    buttonPos = (buttonPos + 1) % len(playerList)
 
     for player in playerList:
         player.reset(deck)
@@ -722,6 +723,7 @@ if __name__ == "__main__":
     playerList[1].info,itr = cfr.getMostRecentSave()
     print("Loaded AI with",itr,"iterations")
     playerList[1].AI = CFRIntelligence
+    #playerList[0].AI = randomBot
     bigBlind = 20
     buttonPos = 0
     buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4)
