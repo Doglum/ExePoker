@@ -102,14 +102,16 @@ def CFRIntelligence(choices,player):
     comm = player.communityCards
     history = player.history
     info = player.info
+    absLevel = player.absLevel
 
     #gets abstract value of cards
-    cardValue = cfr.getCardAbstraction(hole,comm)
+    cardValue = cfr.getCardAbstraction(hole,comm,absLevel)
 
     #gets infoset and its average (Nash equilibrium) strategy
     iSet = info.getInfoSet((cfr.getHistoryString(history),cardValue),choices)
     strat = iSet.averageStrat()
     
+    #TEST
     """
     Card.displayCards(hole)
     print(choices)
@@ -143,6 +145,7 @@ class Player():
         self.communityCards = []
         self.history = []
         self.info = None
+        self.absLevel = 1
 
         #function that handles decisions TODO think about
         self.AI = humanIntelligence
@@ -721,9 +724,10 @@ if __name__ == "__main__":
     #TODO finish game loop and get function to detect all but one busted
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
-    playerList[1].info,itr = cfr.getMostRecentSave()
+    playerList[1].info,itr = cfr.getMostRecentSave("SavesAbstract2")
     print("Loaded AI with",itr,"iterations")
     playerList[1].AI = CFRIntelligence
+    playerList[1].absLevel = 2
     #playerList[0].AI = randomBot
     bigBlind = 20
     buttonPos = 0
