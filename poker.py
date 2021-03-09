@@ -496,7 +496,6 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
         raised = False
         folded = False
         
-        print("bet round bets",player.bet,highestBet)
         #if player needs to call
         if player.bet < highestBet:
 
