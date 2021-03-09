@@ -119,6 +119,7 @@ def CFRIntelligence(choices,player):
 
     #gets choice based on strat (prob. dis.)
     choice = random.choices(choices,strat)[0]
+    
 
     amount = 0
     if choice == "Raise":
@@ -494,7 +495,8 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
 
         raised = False
         folded = False
-
+        
+        print("bet round bets",player.bet,highestBet)
         #if player needs to call
         if player.bet < highestBet:
 
@@ -579,7 +581,7 @@ def gameRound(*args):
     elif len(playerList) == 2:
         #heads up, dealer is also small blind
         activePlayer = buttonPos
-
+    
     #sets blinds by raising half big blind twice
     if len(playerList) > 2:
         pot, highestBet = playerList[(buttonPos+1) % len(playerList)]._raise(pot,0,int(bigBlind/2))
@@ -588,14 +590,13 @@ def gameRound(*args):
         pot, highestBet = playerList[buttonPos]._raise(pot,0,int(bigBlind/2))
         pot, highestBet = playerList[(buttonPos+1) % len(playerList)]._raise(pot,highestBet,int(bigBlind/2))
     
-
     communityCards = []
     if printing:
         print("Dealing...")
     deal(deck,playerList)
 
     #preflop
-    activePlayer, highestBet, pot = bettingRound(playerList,highestBet,0,pot,limit,printing)
+    activePlayer, highestBet, pot = bettingRound(playerList,highestBet,activePlayer,pot,limit,printing)
     gameWon, winner = checkGameWon(playerList)
     
     if not gameWon:
