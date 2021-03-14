@@ -95,6 +95,18 @@ def randomBot(choices,player):
     else:
         return choice, amount
     
+def raiseBot(choices,player):
+    """AI that always raises (or calls at bet limit)"""
+    amount = 0
+    if "Raise" in choices:
+        amount = 20
+        return "Raise", amount
+    else:
+        if "Call" in choices:
+            return "Call", amount
+        elif "Check" in choices:
+            return "Check"
+    
 def CFRIntelligence(choices,player):
     """AI that works based on trained data from CFR"""
     #gets attributes from player
@@ -726,7 +738,7 @@ if __name__ == "__main__":
     playerList = Player.getPlayerList(2,300)
     playerList[1].info,itr = cfr.getMostRecentSave("SavesAbstract2")
     print("Loaded AI with",itr,"iterations")
-    playerList[1].AI = CFRIntelligence
+    playerList[1].AI = raiseBot
     playerList[1].absLevel = 2
     #playerList[0].AI = randomBot
     bigBlind = 20
