@@ -64,6 +64,37 @@ def getHistoryString(history):
             msg+="_"
     return msg
 
+def forgetfulHistory(history):
+    """Converts history list to forgetful history string,
+    one where only the actions of this round are remembered"""
+    roundCount = len([act for act in history if act=="Round"])
+    forgetful = ""
+    
+    #preflop
+    if roundCount == 0:
+        forgetful += "p"
+        
+    #flop
+    elif roundCount == 1:
+        forgetful += "f"
+        
+    #turn
+    elif roundCount == 2:
+        forgetful += "t"
+        
+    #river
+    elif roundCount == 3:
+        forgetful += "r"
+        
+    if roundCount <= 0:
+        forgetful += getHistoryString(history)
+    else:
+        #gets all history after last round
+        lastRoundIndex = history[::-1].index("Round")
+        forgetful += getHistoryString(history[(len(history)) - lastRoundIndex::])
+    return forgetful
+    
+
 def getCardAbstraction(holeCards,communityCards=[],abstractionLevel = 1):
     """Very simple abstraction, groups based on basic hand
     rank (e.g. flush) and nothing else, also abstracts
@@ -137,7 +168,7 @@ def payoff(players):
     #consider doing just opponent bet TODO
     return sum([p.bet for p in players])
 
-def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit,absLevel):
+def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit,absLevel,forgetful):
     """Performs CFR, recursive, on one betting round. Returns payoff and
     updates information sets with regrets as they are processed"""
     his = deepcopy(history)
@@ -198,8 +229,12 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit,absLevel):
     cardValue = getCardAbstraction(players[currentPlayer].holeCards,players[0].communityCards,absLevel)
     #calculates position of opponent (next player)
     opponent = (currentPlayer + 1) % 2
+    
     #creates/gets infoset object for this game state and retrieves strategy
-    iSet = sets.getInfoSet((getHistoryString(his),cardValue),actions)
+    if forgetful:
+        iSet = sets.getInfoSet((forgetfulHistory(his),cardValue),actions)
+    else:
+        iSet = sets.getInfoSet((getHistoryString(his),cardValue),actions)
     strat = iSet.getStrat(reachProbs[currentPlayer])    
 
     #stores regrets for each possible action evaluated
@@ -223,7 +258,7 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit,absLevel):
         d = deepcopy(deck)
 
         #recursive call, passes updated values after processing of this action
-        newRegrets[i] = -trainCFR(d,his+[action],pl,newReachProbs,opponent,sets,limit,absLevel)
+        newRegrets[i] = -trainCFR(d,his+[action],pl,newReachProbs,opponent,sets,limit,absLevel,forgetful)
 
     #value is regrets weighted by action probability
     nodeValue = 0
@@ -236,7 +271,7 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit,absLevel):
 
     return nodeValue
 
-def doTraining(sets,itr, limit=4, absLevel = 1):
+def doTraining(sets,itr, limit=4, absLevel = 1,forgetful=False):
     """Does training on infoset dictionary sets for itr iterations
     bet limit is 4 by default, for quick demo use limit=1"""
     for i in range(itr):
@@ -251,7 +286,7 @@ def doTraining(sets,itr, limit=4, absLevel = 1):
         playerList[0].bet = 10
         playerList[1].bet = 20
         #performs 1 iteration of training
-        value = trainCFR(deck,history,playerList,[1,1],0,sets,limit,absLevel)
+        value = trainCFR(deck,history,playerList,[1,1],0,sets,limit,absLevel,forgetful)
     return value
 
 def loadSets(filename):
@@ -261,7 +296,7 @@ def saveSets(sets,filename):
     """Saves Sets object to file"""
     pickle.dump(sets,open(filename,"wb"))
 
-def trainFor(sets,mins,startItr,limit=4,saveDir="Saves",saveInterval=100,absLevel = 1):
+def trainFor(sets,mins,startItr,limit=4,saveDir="Saves",saveInterval=100,absLevel = 1,forgetful = False):
     """Performs training on sets object for mins minutes,
     will save every saveInterval iterations and at end"""
     info = sets
@@ -270,7 +305,7 @@ def trainFor(sets,mins,startItr,limit=4,saveDir="Saves",saveInterval=100,absLeve
     #while still time
     while (time.time() - start)/60 <= mins:
         itrs += 1
-        doTraining(info,1,limit,absLevel)
+        doTraining(info,1,limit,absLevel,forgetful)
         if itrs % saveInterval == 0:
             saveSets(info,saveDir+"/sets"+str(itrs)+".p")
     end = time.time()
@@ -286,23 +321,42 @@ def getMostRecentSave(saveDir="Saves"):
     itrs = saves[-1].replace("sets","")
     itrs = itrs.replace(".p","")
     return loadSets(saveDir+"/"+saves[-1]),int(itrs)
+
+def newTrainingDirectory(saveDir):
+    """Creates a directory saveDir and stores an empty Sets object
+    in it called saves0.p"""
+    existingFiles = os.listdir()
+    if saveDir in existingFiles:
+        print("This directory already exists")
+        return
+
+    os.mkdir(saveDir)
+    info = Sets()
+    saveSets(info,saveDir+"/sets0.p")
+    
             
 if __name__ == "__main__":
-    whichTrain = input("Basic or advanced train?(b/a)\n")
+    whichTrain = input("Basic or advanced train?(b/a) Add f for forgetful\n")
     if whichTrain == "b":
         info,itrs = getMostRecentSave()
         print("Current itr:",itrs)
         mins = float(input("Train for how many mins?\n"))
         print("Processing...")
-        trainFor(info,mins,itrs)
+        trainFor(info,mins,itrs, saveInterval=1000)
         
     elif whichTrain == "a":
         info,itrs = getMostRecentSave("SavesAbstract2")
         print("Current itr:",itrs)
         mins = float(input("Train for how many mins?\n"))
         print("Processing...")
-        trainFor(info,mins,itrs,saveDir = "SavesAbstract2",absLevel = 2)
-    
+        trainFor(info,mins,itrs,saveDir = "SavesAbstract2",absLevel = 2, saveInterval=1000)
+
+    elif whichTrain == "bf":
+        info,itrs = getMostRecentSave("SavesForgetfulAbstract1")
+        print("Current itr:",itrs)
+        mins = float(input("Train for how many mins?\n"))
+        print("Processing...")
+        trainFor(info,mins,itrs,saveDir = "SavesForgetfulAbstract1",absLevel = 1, forgetful=True, saveInterval=1000)
 
             
             
