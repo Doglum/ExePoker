@@ -252,7 +252,7 @@ def trainCFR(deck,history,players,reachProbs,currentPlayer,sets,limit,absLevel,f
         #gets copy of players for each scenario
         pl = deepcopy(players)
         if action == "Raise":
-            pl[currentPlayer].bet += 20
+            pl[currentPlayer].bet = pl[opponent].bet+20
         elif action == "Call":
             pl[currentPlayer].bet = pl[opponent].bet
 
