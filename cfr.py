@@ -90,8 +90,9 @@ def forgetfulHistory(history):
         forgetful += getHistoryString(history)
     else:
         #gets all history after last round
-        lastRoundIndex = history[::-1].index("Round")
-        forgetful += getHistoryString(history[(len(history)) - lastRoundIndex::])
+        add = getHistoryString(history)
+        addIndex = add.rindex("_")
+        forgetful += add[addIndex+1::]
     return forgetful
     
 
