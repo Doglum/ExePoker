@@ -1,5 +1,6 @@
 import poker, cfr
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 global figureNum
 figureNum = 0
@@ -38,18 +39,36 @@ if __name__ == "__main__":
     deck = poker.Card.getDeck()
     playerList = poker.Player.getPlayerList(2,500)
     
-    #loads AIs
-    bInfo,bitr = cfr.getMostRecentSave("Saves")
-    aInfo,aitr = cfr.getMostRecentSave("SavesAbstract2")
+    #initialises player objects for AIs
+    raisePlayer = poker.Player(500)
+    raisePlayer.AI = poker.raiseBot
     
-    #player 1 details (more precise abstraction)
-    playerList[0].info = aInfo
-    playerList[0].AI = poker.CFRIntelligence
-    playerList[0].absLevel = 2
+    randomPlayer = poker.Player(500)
+    randomPlayer.AI = poker.randomBot
     
-    #player 2 details (simple abstraction)
-    playerList[1].info = bInfo
-    playerList[1].AI = poker.CFRIntelligence
+    
+    #Abstraction level 1, non forgetful (b - basic)
+    bPlayer = poker.Player(500)
+    bPlayer.info, bitr = cfr.getMostRecentSave("Saves")
+    bPlayer.AI = poker.CFRIntelligence
+    bPlayer.absLevel = 1
+    
+    #Abstraction level 2, non forgetful (a - advanced)
+    aPlayer = poker.Player(500)
+    aPlayer.info, aitr = cfr.getMostRecentSave("SavesAbstract2")
+    aPlayer.AI = poker.CFRIntelligence
+    aPlayer.absLevel = 2
+    
+    #Abstraction level 1, forgetful (bf -basic forgetful)
+    bfPlayer = poker.Player(500)
+    bfPlayer.info, bfItr = cfr.getMostRecentSave("SavesForgetfulAbstract1")
+    bfPlayer.AI = poker.CFRIntelligence
+    bfPlayer.absLevel = 1
+    bfPlayer.forgetful = True
+    
+    #CONFIGURE as appropriate, player 0 goes first
+    playerList[0] = bfPlayer
+    playerList[1] = raisePlayer
     
     
     #setup
@@ -59,8 +78,11 @@ if __name__ == "__main__":
     p1Winnings = []
     p2Winnings = []
     
+    rounds = 10000
+    updateInterval = rounds/10
+    
     #simulates rounds of the game, chip count reset
-    for i in range(10000):
+    for i in range(rounds):
         buttonPos = poker.gameRound(deck,playerList,bigBlind,buttonPos,4,False)
         
         p1Win = playerList[0].chips - 500
@@ -72,11 +94,14 @@ if __name__ == "__main__":
             p.reset(deck)
             p.history = []
             p.chips = 500
+            
+        if i % updateInterval == 0:
+            print("Reached",i,"Iterations")
     
     
     
     
-    plotLine(getMBBValues(p1Winnings),"Advanced player balance")
-    print(sum(getMBBValues(p1Winnings))/len(p1Winnings))
-    plotLine(getCumulativeValues(p1Winnings),"Advanced player balance")
+    plotLine(getMBBValues(p1Winnings)[500:],"Player 1 Winnings")
+    print((sum(p1Winnings)/(bigBlind/1000)/rounds))
+    plotLine(getCumulativeValues(p1Winnings),"Player 1 Winnings")
         
