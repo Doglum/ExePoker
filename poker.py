@@ -121,6 +121,7 @@ def CFRIntelligence(choices,player):
     cardValue = cfr.getCardAbstraction(hole,comm,absLevel)
 
     #gets infoset and its average (Nash equilibrium) strategy
+    #uses different string if forgetful
     if forgetful:
         iSet = info.getInfoSet((cfr.forgetfulHistory(history),cardValue),choices)
     else:
@@ -128,12 +129,12 @@ def CFRIntelligence(choices,player):
     strat = iSet.averageStrat()
     
     #TEST
-    
+    """
     Card.displayCards(hole)
     print(choices)
     print(strat)
     print(cardValue)
-    
+    """
 
     #gets choice based on strat (prob. dis.)
     choice = random.choices(choices,strat)[0]
