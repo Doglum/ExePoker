@@ -502,6 +502,34 @@ def compareSimHands(holeCards,cmCards,oppHoles):
     for hole in oppHoles:
         oppValues.append(getBest(hole,cmCards))
     return getWinningHands([playerValue]+oppValues)[0] == 0
+
+def betterHandProbability(holeCards,communityCards):
+    """Enumerative method to find exact probability of having better
+    hand at stage in the game"""
+    #removes known cards from estimation
+    deck = Card.getDeck()
+    cardsToRemove = []
+    for card in holeCards+communityCards:
+        for i in range(len(deck)):
+            if card == deck[i]:
+                cardsToRemove.append(deck[i])
+                break
+
+    for card in cardsToRemove:
+        deck.remove(card)
+    
+    games = 0
+    wins = 0
+    playerRank = getBest(holeCards,communityCards)
+    for opponentCards in combinations(deck,2):
+        opponentRank = getBest(list(opponentCards),communityCards)
+        winners = getWinningHands([playerRank,opponentRank])
+        games+=1
+        if 0 in winners:
+            wins+=1
+            
+    return wins/games
+        
         
 
 def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
@@ -742,7 +770,7 @@ if __name__ == "__main__":
     #TODO finish game loop and get function to detect all but one busted
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
-    playerList[1].info,itr = cfr.getMostRecentSave("SavesForgetfulAbstract1")
+    playerList[1].info,itr = cfr.getMostRecentSave("ForgetfulAbstract1")
     print("Loaded AI with",itr,"iterations")
     playerList[1].AI = CFRIntelligence
     playerList[1].absLevel = 1
