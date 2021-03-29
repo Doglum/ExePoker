@@ -375,6 +375,78 @@ def handRecognition(hand):
 
     return rankings,msg
 
+def cardValueToString(value):
+    """Helper for handRankToString. Converts card value 
+    to name string, e.g. 13 -> King"""
+    if value == 14:
+        return "Ace"
+    elif value == 13:
+        return "King"
+    elif value == 12:
+        return "Queen"
+    elif value == 11:
+        return "Jack"
+    else:
+        return str(value)
+
+def handRankToString(rank):
+    """Gives a detailed string describing a hand's rank"""
+    msg = ""
+    kicker = ""
+    if rank[0] == 9:
+        msg += "Straight Flush"
+        
+    elif rank[0] == 8:
+        msg += "Four of a kind"
+        four = cardValueToString(rank[1])
+        kicker = cardValueToString(rank[2])
+        msg += (" (four " + four +"s")
+        
+    elif rank[0] == 7:
+        msg += "Full House"
+        house = cardValueToString(rank[1])
+        full = cardValueToString(rank[2])
+        msg += " (house of " + house + "s full of " + full +"s)"
+        
+    elif rank[0] == 6:
+        msg += "Flush"
+        
+    elif rank[0] == 5:
+        msg += "Straight"
+        
+    elif rank[0] == 4:
+        msg += "Three of a kind"
+        three = cardValueToString(rank[1])
+        kicker = cardValueToString(rank[2]) 
+        kicker += " and " + cardValueToString(rank[3])
+        msg += " (three "+ three + "s"
+        
+    elif rank[0] == 3:
+        msg += "Two pair"
+        pair1 = cardValueToString(rank[1])
+        pair2 = cardValueToString(rank[2])
+        kicker = cardValueToString(rank[3])
+        msg += " (pair of " + pair1 + "s and " + pair2 + "s"
+        
+    elif rank[0] == 2:
+        msg += "Pair"
+        pair = cardValueToString(rank[1])
+        kicker = cardValueToString(rank[2])
+        kicker += ", " + cardValueToString(rank[3])
+        kicker += " and " + cardValueToString(rank[4])
+        msg += " (pair of " + pair + "s"
+        
+    elif rank[0] == 1:
+        msg += "High Card"
+    
+    if rank[0] in [9,6,5,1]:
+        high = cardValueToString(rank[1])
+        msg += " with " + high + " high"
+    elif rank[0] in [8,4,3,2]:
+        msg += " with " + kicker + " kicker)"
+    
+    return msg
+
 
 def getWinningHands(rankList,compareIndex = 0,toCompare = []):
     """Takes a list of outputted arrays from hand recognition and outputs
