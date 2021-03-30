@@ -116,9 +116,13 @@ def CFRIntelligence(choices,player):
     info = player.info
     absLevel = player.absLevel
     forgetful = player.forgetful
+    probabilistic = player.probabilistic
 
     #gets abstract value of cards
-    cardValue = cfr.getCardAbstraction(hole,comm,absLevel)
+    if probabilistic:
+        cardValue = cfr.getCardAbstraction(hole,comm,probabilistic=probabilistic)
+    else:
+        cardValue = cfr.getCardAbstraction(hole,comm,absLevel)
 
     #gets infoset and its average (Nash equilibrium) strategy
     #uses different string if forgetful
@@ -164,6 +168,7 @@ class Player():
         self.info = None
         self.absLevel = 1
         self.forgetful = False
+        self.probabilistic = False
 
         #function that handles decisions TODO think about
         self.AI = humanIntelligence
@@ -173,6 +178,7 @@ class Player():
         resets round specific attributes"""
         deck += self.holeCards
         self.holeCards.clear()
+        self.communityCards.clear()
         
         self.bet = 0
         self.folded = False
