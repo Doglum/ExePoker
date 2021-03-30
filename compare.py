@@ -49,27 +49,45 @@ if __name__ == "__main__":
     
     #Abstraction level 1, non forgetful (b - basic)
     bPlayer = poker.Player(500)
-    bPlayer.info, bitr = cfr.getMostRecentSave("Saves")
+    bPlayer.info, bitr = cfr.getMostRecentSave("Abstract1")
     bPlayer.AI = poker.CFRIntelligence
     bPlayer.absLevel = 1
     
     #Abstraction level 2, non forgetful (a - advanced)
     aPlayer = poker.Player(500)
-    aPlayer.info, aitr = cfr.getMostRecentSave("SavesAbstract2")
+    aPlayer.info, aitr = cfr.getMostRecentSave("Abstract2")
     aPlayer.AI = poker.CFRIntelligence
     aPlayer.absLevel = 2
     
     #Abstraction level 1, forgetful (bf -basic forgetful)
     bfPlayer = poker.Player(500)
-    bfPlayer.info, bfItr = cfr.getMostRecentSave("SavesForgetfulAbstract1")
+    bfPlayer.info, bfItr = cfr.getMostRecentSave("ForgetfulAbstract1")
     bfPlayer.AI = poker.CFRIntelligence
     bfPlayer.absLevel = 1
     bfPlayer.forgetful = True
     
+    #Abstraction level 2, forgetful (af -advanced forgetful)
+    afPlayer = poker.Player(500)
+    afPlayer.info, afItr = cfr.getMostRecentSave("ForgetfulAbstract2")
+    afPlayer.AI = poker.CFRIntelligence
+    afPlayer.absLevel = 2
+    afPlayer.forgetful = True
+    
+    #Probabilistic, forgetful (p - probabilistic)
+    pPlayer = poker.Player(500)
+    pPlayer.info,pItr = cfr.getMostRecentSave("ForgetfulProbabilistic")
+    pPlayer.AI = poker.CFRIntelligence
+    pPlayer.forgetful = True
+    pPlayer.probabilistic = True
+    
     #CONFIGURE as appropriate, player 0 goes first
     playerList[0] = bfPlayer
-    playerList[1] = raisePlayer
+    playerList[1] = afPlayer
     
+    graphTitle = "Player 1 winnings"
+    
+    rounds = 10000
+    updateInterval = rounds/10
     
     #setup
     bigBlind = 20
@@ -78,8 +96,7 @@ if __name__ == "__main__":
     p1Winnings = []
     p2Winnings = []
     
-    rounds = 10000
-    updateInterval = rounds/10
+    
     
     #simulates rounds of the game, chip count reset
     for i in range(rounds):
@@ -101,7 +118,7 @@ if __name__ == "__main__":
     
     
     
-    plotLine(getMBBValues(p1Winnings)[500:],"Player 1 Winnings")
-    print((sum(p1Winnings)/(bigBlind/1000)/rounds))
-    plotLine(getCumulativeValues(p1Winnings),"Player 1 Winnings")
+    plotLine(getMBBValues(p1Winnings)[500:],graphTitle)
+    print((sum(p1Winnings)/(bigBlind/1000)/rounds),"mbb/g")
+    plotLine(getCumulativeValues(p1Winnings),graphTitle)
         
