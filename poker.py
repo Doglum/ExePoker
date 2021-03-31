@@ -260,15 +260,16 @@ def handRecognition(hand):
 
     #ace counts as low card
     if hand[4].value==14 and hand[0].value==2:
-        for i in range(1,3):
-            if hand[i].value + 1 != hand[i+1].value:
-                straight = False
-                break
-            
+        midVals = []
+        for i in range(1,4):
+            midVals.append(hand[i].value)
+        if midVals != [3,4,5]:
+            straight = False
+        
         if straight:
             rankings[1] = 5
             
-    #typical case, ace is high card
+    #typical case, ace is high card if it exists
     else:
         for i in range(4):
             if hand[i].value + 1 != hand[i+1].value:
