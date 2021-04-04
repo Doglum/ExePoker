@@ -298,9 +298,20 @@ def doTraining(sets,itr, limit=4, absLevel = 1,forgetful=False,probabilistic = F
         value = trainCFR(deck,history,playerList,[1,1],0,sets,limit,absLevel,forgetful,probabilistic)
     return value
 
+class CustomUnpickler(pickle.Unpickler):
+    """Required because of import shenanigans and pickle needing file
+    definitions and attempting to find them in __main__ where they do not
+    exist"""
+    def find_class(self, module, name):
+        if name == 'Sets':
+            return Sets
+        if name == "InfoSet":
+            return InfoSet
+        return super().find_class(module, name)
+
 def loadSets(filename):
     """Returns loaded Sets object from file"""
-    return pickle.load(open(filename,"rb"))
+    return CustomUnpickler(open(filename,"rb")).load()
 def saveSets(sets,filename):
     """Saves Sets object to file"""
     pickle.dump(sets,open(filename,"wb"))

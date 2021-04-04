@@ -848,8 +848,6 @@ if __name__ == "__main__":
 """
 #"""
 if __name__ == "__main__":
-    #circular dependedency workaround, TODO think about
-    from cfr import Sets,InfoSet
     #TODO finish game loop and get function to detect all but one busted
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
