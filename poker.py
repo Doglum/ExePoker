@@ -56,10 +56,14 @@ class Card():
 
     def displayCards(cards):
         """Displays multiple cards, formatted horizontally"""
+        print(Card.cardListToString(cards))
+        
+    def cardListToString(cards):
+        """Converts a list of cards to a string"""
         msg = ""
         for card in cards:
             msg+=str(card)+" "*(4-len(str(card)))
-        print(msg)
+        return msg
 
 def drawX(x,deck):
     """Removes x cards from a deck list and returns it as a list"""
