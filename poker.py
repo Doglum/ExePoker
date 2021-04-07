@@ -37,6 +37,9 @@ class Card():
     def __str__(self):
         """Makes object convertable to string"""
         return self.name
+    
+    def simpleString(self):
+        return self.name[:-1]+self.suit.lower()[0]
 
     def __eq__(self,other):
         """Allows comparison with =="""
