@@ -39,6 +39,7 @@ class Card():
         return self.name
     
     def simpleString(self):
+        """Alternative to str() if non-unicode preferred"""
         return self.name[:-1]+self.suit.lower()[0]
 
     def __eq__(self,other):
