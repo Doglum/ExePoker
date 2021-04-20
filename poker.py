@@ -1,4 +1,4 @@
-import random, pickle
+import random
 from itertools import combinations
 from copy import deepcopy
 import cfr
@@ -114,6 +114,14 @@ def raiseBot(choices,player):
             return "Call", amount
         elif "Check" in choices:
             return "Check"
+        
+def callBot(choices,player):
+    """AI that always calls or checks"""
+    amount = 0
+    if "Call" in choices:
+        return "Call", amount
+    elif "Check" in choices:
+        return "Check",amount
     
 def CFRIntelligence(choices,player):
     """AI that works based on trained data from CFR"""
