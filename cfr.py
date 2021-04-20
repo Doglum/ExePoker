@@ -112,7 +112,7 @@ def getCardAbstraction(holeCards,communityCards=[],abstractionLevel = 1,probabil
         if holeCards[0].value == holeCards[1].value:
             preflop *= 3
         #adjacent
-        if holeCards[0].value == holeCards[1].value + 1 or \
+        if holeCards[0].value + 1 == holeCards[1].value or \
            holeCards[0].value == 2 and holeCards[1].value == 14:
             preflop *= 5
         #XOR, one value is high
