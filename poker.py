@@ -185,8 +185,11 @@ class Player():
         self.absLevel = 1
         self.forgetful = False
         self.probabilistic = False
-
-        #function that handles decisions TODO think about
+        
+        #stores detailed history of wins, not used by default
+        self.recorded = []
+        
+        #function that handles decisions
         self.AI = humanIntelligence
 
     def reset(self,deck):
@@ -562,8 +565,6 @@ def estimateHandStrength(holeCards,communityCards,opponents=1,iterations=500):
         for i in range(opponents):
             oppHoles.append(drawX(2,dck))
 
-        #TODO add something for pre-flop strength
-
         #estimate strength on flop
         if len(cmCards) == 0:
             cmCards+=drawX(3,dck)
@@ -709,7 +710,6 @@ def bettingRound(playerList,highestBet,activePlayer,pot,limit,printing = True):
     return activePlayer, highestBet, pot
 
 def gameRound(*args):
-    #TODO switch away from *args
     """Performs one full round of poker"""
     deck = args[0]
     playerList = args[1]
@@ -717,8 +717,9 @@ def gameRound(*args):
     buttonPos = args[3]
     limit = args[4]
     printing = args[5]
+    analysing = args[6]
     pot = 0
-    #TODO account for busted players for blinds
+    
     if len(playerList) > 2:
         activePlayer = (buttonPos + 3) % len(playerList)
     elif len(playerList) == 2:
@@ -778,20 +779,39 @@ def gameRound(*args):
 
         winnerIndices = getWinningHands(rankList)
 
-        #TODO split pot when players are allin with <highestBet
-        #TODO sort out rounding on odd splits
         winnings = pot/len(winnerIndices)
         
         for i in winnerIndices:
             if printing: print("Player",i,"Wins!")
             inContention[i].chips += winnings
+            
+            #only for heads-up
+            if analysing:
+                commRecord = deepcopy(communityCards)
+                if len(winnerIndices) > 1:
+                    tieHole = deepcopy(inContention[i].holeCards)
+                    inContention[i].recorded.append(("tie","showdown",tieHole,commRecord,0))
+                else:
+                    loser = inContention[(i+1) % 2]
+                    loseHole = deepcopy(loser.holeCards)
+                    loser.recorded.append(("lose","showdown",loseHole,commRecord,-loser.bet))
+                    winHole = deepcopy(inContention[i].holeCards)
+                    inContention[i].recorded.append(("win","showdown",winHole,commRecord,loser.bet))
 
     #if someone won because everyone else folded
     if gameWon:
         winner.chips += pot
         if printing: print("Player",playerList.index(winner),"Wins!")
+        
+        #only for heads-up
+        if analysing:
+            commCopy = deepcopy(communityCards)
+            loser = playerList[(playerList.index(winner) + 1) % 2]
+            loseHole = deepcopy(loser.holeCards)
+            loser.recorded.append(("lose","fold",loseHole,commCopy,-loser.bet))
+            winHole = deepcopy(winner.holeCards)
+            winner.recorded.append(("win","fold",winHole,commCopy,loser.bet))
 
-    #TODO account for busted players
     buttonPos = (buttonPos + 1) % len(playerList)
 
     for player in playerList:
@@ -860,7 +880,6 @@ if __name__ == "__main__":
 """
 #"""
 if __name__ == "__main__":
-    #TODO finish game loop and get function to detect all but one busted
     deck = Card.getDeck()
     playerList = Player.getPlayerList(2,300)
     playerList[1].info,itr = cfr.getMostRecentSave("ForgetfulAbstract1")
@@ -871,7 +890,7 @@ if __name__ == "__main__":
     #playerList[0].AI = randomBot
     bigBlind = 20
     buttonPos = 0
-    buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4,True)
+    buttonPos = gameRound(deck,playerList,bigBlind,buttonPos,4,True,False)
 #"""
     
     
