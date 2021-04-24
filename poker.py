@@ -23,13 +23,13 @@ class Card():
 
         self.suit = suit
         
-        if suit.lower() in ["c","clubs"]:
+        if suit.lower() in ["c","clubs","♣"]:
             self.name+="♣"
-        elif suit.lower() in ["s","spades"]:
+        elif suit.lower() in ["s","spades","♠"]:
             self.name+="♠"
-        elif suit.lower() in ["h","hearts"]:
+        elif suit.lower() in ["h","hearts","♥"]:
             self.name+="♥"
-        elif suit.lower() in ["d","diamonds"]:
+        elif suit.lower() in ["d","diamonds","♦"]:
             self.name+="♦"
         else:
             self.name += "badsuit"
