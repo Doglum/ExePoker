@@ -121,3 +121,8 @@ if __name__ == "__main__":
     for i in game.sets:
         s = game.sets[i]
         print(i,"\t",s.cumRegrets)
+
+    print("\n Strategy sums bet / pass")
+    for i in game.sets:
+        s = game.sets[i]
+        print(i,"\t",s.stratSum)
